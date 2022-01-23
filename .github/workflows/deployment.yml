@@ -1,0 +1,61 @@
+name: Deployment
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    environment: live
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: setup local php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          extensions: curl
+          tools: composer
+
+      - name: get current timestamp
+        id: deployment-id
+        run: echo "::set-output name=DEPLOYMENT_ID::$(date +%s)"
+      
+      - name: create new folder with current timestamp
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            mkdir "${{ secrets.BASE_PATH }}${{ secrets.DEPLOYMENTS_FOLDER }}/${{ steps.deployment-id.outputs.DEPLOYMENT_ID }}"
+            cp "${{ secrets.BASE_PATH }}${{ secrets.DEPLOYMENTS_FOLDER }}/.env" "${{ secrets.BASE_PATH }}${{ secrets.DEPLOYMENTS_FOLDER }}/${{ steps.deployment-id.outputs.DEPLOYMENT_ID }}/.env"
+      
+      - name: upload to new folder
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SOURCE: src/
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: "${{ secrets.BASE_PATH }}${{ secrets.DEPLOYMENTS_FOLDER }}/${{ steps.deployment-id.outputs.DEPLOYMENT_ID }}"
+          EXCLUDE: "/sql/, .env.example, README.md"
+      
+      - name: if tests successful, update symlink of live and remove staging link, restart consumer
+        uses: appleboy/ssh-action@master
+        with: 
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ${{ secrets.BASE_PATH }}
+            composer install --no-dev
+            cd ..
+            rm "${{ secrets.BASE_PATH }}live"
+            ln -s "${{ secrets.DEPLOYMENTS_FOLDER }}/${{ steps.deployment-id.outputs.DEPLOYMENT_ID }}" live
+            cd live
+            date +"%y.%V.%u-%H%M" > classes/IOL/Newsletter/v1/VERSION.vsf
