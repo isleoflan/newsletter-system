@@ -1,6 +1,6 @@
 <?php
 
-require_once '../../_loader.php';
+require_once '../_loader.php';
 
 $receivers = [
     'stui@isleoflan.ch' => 'Steve'
