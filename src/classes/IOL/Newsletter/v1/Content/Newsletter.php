@@ -46,7 +46,7 @@ class Newsletter
         $this->title = $values['title'];
         $this->subject = $values['subject'];
         $this->preheader = $values['preheader'];
-        $this->sendAt = new Date($values['send_at']);
+        $this->sendAt = is_null($values['send_at']) ? null : new Date($values['send_at']);
 
         $this->loadContent();
     }
