@@ -63,7 +63,7 @@ class Newsletter
     {
         $database = Database::getInstance();
         $database->where('newsletter_id', $this->id);
-        $database->orderBy('sort');
+        $database->orderBy('sort', 'ASC');
         foreach($database->get(NewsletterContent::DB_TABLE) as $contentData){
             $content = new NewsletterContent();
             $content->loadData($contentData);
