@@ -48,8 +48,6 @@ class NewsletterContent
     #[Pure]
     public function render(): string
     {
-        var_dump($this->image);
-        die;
         $return  = '<tr>';
         $return .= '<td class="content text-center text-wrap" style="font-family: Open Sans, -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif; padding: 40px 48px;" align="center">';
         $return .= is_null($this->image) ? '' : '<img src="[[/assets/'.$this->image.']]" class=" mb-md" width="300" alt="" style="line-height: 100%; border: 0 none; outline: none; text-decoration: none; vertical-align: baseline; font-size: 0; margin-top: 0; margin-bottom: 16px;" />';
