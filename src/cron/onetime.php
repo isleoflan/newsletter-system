@@ -6,7 +6,7 @@ $receivers = [
     'stui@isleoflan.ch' => 'Steve'
 ];
 
-$newsletter = new \IOL\Newsletter\v1\Content\Newsletter(1001);
+$newsletter = new \IOL\Newsletter\v1\Content\Newsletter(1002);
 
 foreach($receivers as $email => $name){
     try {
